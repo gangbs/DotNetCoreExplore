@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DotNetCore.Api</name>
+    </assembly>
+    <members>
+        <member name="M:DotNetCore.Api.Areas.Auth.Controllers.UserInfoController.Get2(System.Int32)">
+            <summary>
+            Get测试2
+            </summary>
+            <param name="id">用户id</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
