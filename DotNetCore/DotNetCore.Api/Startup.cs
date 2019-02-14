@@ -22,7 +22,6 @@ namespace DotNetCore.Api
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            //log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo( @"\App_Data\log4net.xml"));
             new LogConfig(ConfigItem.LogRepository).ConfigureAndWatch("log4net.xml");
         }
 
