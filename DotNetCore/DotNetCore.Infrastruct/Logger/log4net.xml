@@ -2,10 +2,10 @@
 
 <log4net>
 
-  <root>
+  <!--<root>
     <level value="INFO" />
     <appender-ref ref="infoFile" />
-  </root>
+  </root>-->
   
   <logger name="logInfo">
     <!--日志级别：在此级别及以上的才会被记录，FATAL > ERROR > WARN > INFO > DEBUG  > ALL-->
@@ -15,7 +15,10 @@
   </logger>
 
   <logger name="logError">
-
+    <!--日志级别：在此级别及以上的才会被记录，FATAL > ERROR > WARN > INFO > DEBUG  > ALL-->
+    <level value="ALL"></level>
+    <!--0个或多个，要引用的appender的名字-->
+    <appender-ref ref="errorFile" />
   </logger>
 
   <appender name="infoFile" type="log4net.Appender.RollingFileAppender">
@@ -36,7 +39,7 @@
 
   </appender>
 
-  <appender name="ErrorAppender" type="log4net.Appender.RollingFileAppender">
+  <appender name="errorFile" type="log4net.Appender.RollingFileAppender">
     <param name="File" value="Logs\\Error\\" />
     <param name="AppendToFile" value="true" />
     <param name="MaxSizeRollBackups" value="100" />
