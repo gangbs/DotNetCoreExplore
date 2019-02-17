@@ -7,6 +7,7 @@ using DotNetCore.Api.Areas.Auth.Models;
 using DotNetCore.Api.Filter;
 using DotNetCore.Dal;
 using DotNetCore.Dal.Entity;
+using DotNetCore.Infrastruct.Log;
 using log4net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,18 +21,8 @@ namespace DotNetCore.Api.Areas.Auth.Controllers
     [ApiController]
     public class UserInfoController : ControllerBase
     {
-        readonly DbContext _dbContext;
-        //readonly ILog logger = LogManager.GetLogger(ConfigItem.LogRepository, ConfigItem.LogInfo);
+        ILogWriter logWriter = Log4NetWriter.GetInstance();
 
-        readonly ILog logger = LogManager.GetLogger(ConfigItem.LogRepository, MethodBase.GetCurrentMethod().DeclaringType);
-
-        //public UserInfoController(DbContext dbContext)
-        //{
-        //    this._dbContext = dbContext;
-        //}
-
-
-        //[ModelValidate]
         [HttpPost]
         public ActionResult<User> Post(User user)
         {
@@ -53,23 +44,10 @@ namespace DotNetCore.Api.Areas.Auth.Controllers
         [HttpGet("{id}")]
         public ActionResult<User> Get2(int id)
         {
-            //  var dbContext = new DbCoreContext();
-            //  UnitOfWork uw = new UnitOfWork(dbContext);
-            //var res=  uw.GetRepository<RoleEntity>();
-
-            //  try
-            //  {
-            //      string sql = $"select Id RoleId,Name RoleName from role";
-            //      var a = res.GetList<Role>(sql);
-            //  }
-            //  catch(Exception e)
-            //  {
-
-            //  }
-
-            logger.Info("log测试5");
-
+           int a1 = 0;
+            int a = 1 / a1;
             return new User();
+
         }
 
         [HttpDelete("{id}")]

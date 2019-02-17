@@ -18,7 +18,7 @@ namespace DotNetCore.Infrastruct.Log
         private Log4NetWriter() { }
         private static object _locker = new object();
         private static Log4NetWriter _instance;
-        public Log4NetWriter GetInstance()
+        public static Log4NetWriter GetInstance()
         {
             if(_instance == null)
             {

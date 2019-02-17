@@ -14,6 +14,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using DotNetCore.Infrastruct.Log;
+using DotNetCore.Api.Filter;
+using log4net;
+using log4net.Repository;
+using log4net.Config;
 
 namespace DotNetCore.Api
 {
@@ -22,7 +26,7 @@ namespace DotNetCore.Api
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            new LogConfig(ConfigItem.LogRepository).ConfigureAndWatch("log4net.xml");
+            new LogConfig("DotNetCoreLogRepository").ConfigureAndWatch("log4net.xml");
         }
 
         public IConfiguration Configuration { get; }
@@ -56,7 +60,11 @@ namespace DotNetCore.Api
 
             services.AddTransient(typeof(DbContext), typeof(DbCoreContext));//DI注册
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(typeof(ApiExceptionFilterAttribute));
+                options.Filters.Add(typeof(ApiLogAttribute));//添加拦截器               
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             services.Configure<ApiBehaviorOptions>(
                 config =>
