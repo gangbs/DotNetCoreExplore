@@ -34,6 +34,13 @@ namespace DotNetCore.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            #region 添加session
+
+            services.AddDistributedMemoryCache();
+            services.AddSession();
+
+            #endregion
+
             #region Swagger
 
             services.AddSwaggerGen(c =>
@@ -51,20 +58,28 @@ namespace DotNetCore.Api
 
             #endregion
 
-            string connectStr = AppSettingJson.GetConfig().GetConnectionString("default");
-            services.AddDbContext<DbCoreContext>(
-                builder => { builder.UseMySQL(connectStr); }//, options => options.MigrationsAssembly("DotNetCore.Api")
-                );
+            #region dbContext
 
-            //services.AddLogging()
+            //string connectStr = AppSettingJson.GetConfig().GetConnectionString("default");
+            //services.AddDbContext<DbCoreContext>(
+            //    builder => { builder.UseMySQL(connectStr); }//, options => options.MigrationsAssembly("DotNetCore.Api")
+            //    );
 
-            services.AddTransient(typeof(DbContext), typeof(DbCoreContext));//DI注册
+            //services.AddTransient(typeof(DbContext), typeof(DbCoreContext));//DI注册
+
+            #endregion
+
+            #region mvc、拦截器
 
             services.AddMvc(options =>
             {
                 options.Filters.Add(typeof(ApiExceptionFilterAttribute));
                 options.Filters.Add(typeof(ApiLogAttribute));//添加拦截器               
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            #endregion
+
+            #region 模型验证
 
             services.Configure<ApiBehaviorOptions>(
                 config =>
@@ -76,7 +91,13 @@ namespace DotNetCore.Api
                       };
                 });
 
+            #endregion
+
+            #region 跨域设置
+
             services.AddCors();//貌似这个不要也行，只要中间件中添加了就可以
+
+            #endregion
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -87,6 +108,8 @@ namespace DotNetCore.Api
                 app.UseDeveloperExceptionPage();
             }
 
+            #region swagger
+
             //启用中间件服务生成Swagger作为JSON终结点
             app.UseSwagger();
             //启用中间件服务对swagger-ui，指定Swagger JSON终结点
@@ -94,6 +117,11 @@ namespace DotNetCore.Api
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
+
+            #endregion
+
+
+            #region 跨域设置
 
             app.UseCors(
                 builder =>
@@ -104,6 +132,24 @@ namespace DotNetCore.Api
                     builder.AllowAnyOrigin();//任何源
                     builder.AllowCredentials();//允许http身份验证和cookie跨域
                 });//CORS 中间件必须位于之前定义的任何终结点应用程序中你想要支持跨域请求
+
+            #endregion
+
+            #region session
+
+            app.UseSession(); //加上这句才能用session
+
+            #endregion
+
+            #region 要添加在usemvc之前
+
+            app.UseWebSockets(new WebSocketOptions
+            {
+                KeepAliveInterval = TimeSpan.FromSeconds(120),//向客户端发送“ping”帧的频率，以确保代理保持连接处于打开状态。 默认值为 2 分钟
+                ReceiveBufferSize = 4 * 1024//用于接收数据的缓冲区的大小。 高级用户可能需要对其进行更改，以便根据数据大小调整性能。 默认值为 4 KB               
+            });
+
+            #endregion
 
             app.UseMvc();
             
