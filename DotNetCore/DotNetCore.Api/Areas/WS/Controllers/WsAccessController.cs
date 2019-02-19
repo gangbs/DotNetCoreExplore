@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using DotNetCore.Infrastruct.Extensions;
 using DotNetCore.ViewModel.WebSocket;
+using DotNetCore.Api.Areas.WS.Data;
 
 namespace DotNetCore.Api.Areas.WS.Controllers
 {
@@ -18,6 +19,9 @@ namespace DotNetCore.Api.Areas.WS.Controllers
     [ApiController]
     public class WsAccessController : ControllerBase
     {
+        private Dictionary<string, TagDataPush> _tagData = new Dictionary<string, TagDataPush>();
+
+        private WebSocket _webSocket;
 
         [HttpGet]
         public async Task<HttpResponseMessage> Get()
@@ -109,6 +113,11 @@ namespace DotNetCore.Api.Areas.WS.Controllers
             string str = obj.ToJson();
             var buffer = str.String2Byte();
             return buffer;
+        }
+
+        public void DataUpdate(object sender, DataUpdateEventArgs args)
+        {
+            this._tagData[args.TagName] = args.TagData;
         }
     }
 }
