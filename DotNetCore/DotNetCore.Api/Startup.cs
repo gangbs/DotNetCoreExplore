@@ -141,7 +141,7 @@ namespace DotNetCore.Api
 
             #endregion
 
-            #region 要添加在usemvc之前
+            #region websocket,要添加在usemvc之前
 
             app.UseWebSockets(new WebSocketOptions
             {

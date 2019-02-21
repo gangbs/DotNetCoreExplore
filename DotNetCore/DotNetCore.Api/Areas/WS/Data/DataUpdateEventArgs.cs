@@ -16,4 +16,14 @@ namespace DotNetCore.Api.Areas.WS.Data
         public string TagName { get; private set; }
         public TagDataPush TagData { get; private set; }
     }
+
+
+    public class ExceptionEventArgs : EventArgs
+    {
+        public ExceptionEventArgs(Exception exception)
+        {
+            this.Error = exception;
+        }
+        public Exception Error { get; private set; }
+    }
 }

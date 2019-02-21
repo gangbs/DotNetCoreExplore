@@ -21,8 +21,8 @@ namespace DotNetCore.ViewModel.WebSocket
 
     public class TagDataPush
     {
-        public string value { get; set; }
-        public int timestamp { get; set; }
+        public double value { get; set; }
+        public long timestamp { get; set; }
 
         public TagDataStatus status { get; set; }
 
