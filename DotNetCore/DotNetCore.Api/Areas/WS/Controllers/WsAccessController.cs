@@ -25,6 +25,8 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
         private bool _isClose = false;
 
+        readonly RTDataProxy rTDataProxy = new RTDataProxy();
+
         [HttpGet]
         public async Task<HttpResponseMessage> Get()
         {
@@ -32,8 +34,8 @@ namespace DotNetCore.Api.Areas.WS.Controllers
             {
                 var socket = HttpContext.WebSockets.AcceptWebSocketAsync().Result;
 
-                var buffer = new byte[1024 * 4];
-                //socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None).ContinueWith(task;
+                
+                this.rTDataProxy.InitClient();
 
                 await WsHandler(socket);
             }
@@ -79,6 +81,8 @@ namespace DotNetCore.Api.Areas.WS.Controllers
                     await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
                     var reqSub = GetReceiveObj<WsRequest<SubscribeRequestContent>>(buffer);
                     //去订阅位号数据
+                    this.Subscribe(reqSub.content.body);
+
 
                     //响应订阅请求
                     bool subFlag = true;
@@ -136,6 +140,22 @@ namespace DotNetCore.Api.Areas.WS.Controllers
         //    }
         //}
 
+        private void Subscribe(List<SubscribeDevice> lstSubObj)
+        {
+            var lstSubTag = new List<TagSubObj>();
+            foreach(var device in lstSubObj)
+            {
+                foreach(var pro in device.props)
+                {
+                    lstSubTag.Add(new TagSubObj
+                    {
+                        TagName = device.deviceName + "-" + pro.name
+                    });
+                }
+            }
+
+            this.rTDataProxy.Subscribe(lstSubTag);
+        }
 
 
     }

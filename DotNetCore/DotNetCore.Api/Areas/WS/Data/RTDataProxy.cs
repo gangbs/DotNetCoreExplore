@@ -10,7 +10,7 @@ namespace DotNetCore.Api.Areas.WS.Data
         public string TagName { get; set; }
     }
 
-    public interface IRTDataProxy<TData>
+    public interface IRTDataProxy<TData>:IDisposable
     {
         event EventHandler<DataUpdateEventArgs> OnMessage;
 
@@ -25,14 +25,23 @@ namespace DotNetCore.Api.Areas.WS.Data
         void UnSubscribe(List<TagSubObj> lstTag);
     }
 
-    public class RTDataProxy<TData> : IRTDataProxy<TData>
+    public class RTDataProxy : IRTDataProxy<TagRawData>
     {
         public event EventHandler<DataUpdateEventArgs> OnMessage;
         public event EventHandler<EventArgs> OnException;
 
+        private RTDataSource _dataSource = new RTDataSource();
+
         public void InitClient()
         {
-            throw new NotImplementedException();
+            this._dataSource.OnMessage += this.MessageHandler;
+            this._dataSource.Start();
+        }
+
+        public void InitClient(List<TagSubObj> lstTag)
+        {
+            this.InitClient();
+            this.Subscribe(lstTag);
         }
 
         /// <summary>
@@ -41,7 +50,8 @@ namespace DotNetCore.Api.Areas.WS.Data
         /// <param name="lstTag"></param>
         public void Subscribe(List<TagSubObj> lstTag)
         {
-            
+            var lstTagName = lstTag.Select(x => x.TagName).ToList();
+            this._dataSource.Subscribe(lstTagName);
         }       
 
         /// <summary>
@@ -50,7 +60,8 @@ namespace DotNetCore.Api.Areas.WS.Data
         /// <param name="lstTag"></param>
         public void UnSubscribe(List<TagSubObj> lstTag)
         {
-            
+            var lstTagName = lstTag.Select(x => x.TagName).ToList();
+            this._dataSource.UnSubscribe(lstTagName);
         }
 
         /// <summary>
@@ -58,7 +69,7 @@ namespace DotNetCore.Api.Areas.WS.Data
         /// </summary>
         /// <param name="rawData"></param>
         /// <returns></returns>
-        public DataUpdateEventArgs TranTagData(TData rawData)
+        public DataUpdateEventArgs TranTagData(TagRawData rawData)
         {
             throw new NotImplementedException();
         }
@@ -68,7 +79,7 @@ namespace DotNetCore.Api.Areas.WS.Data
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="rawData"></param>
-        private void MessageHandler(object sender, TData rawData)
+        private void MessageHandler(object sender, TagRawData rawData)
         {
             if (this.OnMessage != null)
             {
@@ -90,6 +101,10 @@ namespace DotNetCore.Api.Areas.WS.Data
             }
         }
 
+        public void Dispose()
+        {
+            this._dataSource.Dispose();
+        }
     }
 
 }
