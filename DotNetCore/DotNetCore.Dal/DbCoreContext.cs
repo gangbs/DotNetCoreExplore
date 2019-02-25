@@ -31,7 +31,7 @@ namespace DotNetCore.Dal
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             string connectStr = "server=localhost;port=3306;user=root;password=198603;database=DotNetCore";
-            optionsBuilder.UseMySQL(connectStr);
+            optionsBuilder.UseMySQL(connectStr);//MySql.Data.MySqlClient.MySqlDataAdapter
         }
 
 
