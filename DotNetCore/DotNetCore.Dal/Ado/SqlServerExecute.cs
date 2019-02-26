@@ -119,7 +119,6 @@ namespace DotNetCore.Dal.Ado
                 result = new SimpleResult { Success = false, Message = e.Message };
             }
             return result;
-
         }
 
         public void Dispose()

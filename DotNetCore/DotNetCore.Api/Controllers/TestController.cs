@@ -50,7 +50,7 @@ namespace DotNetCore.Api.Controllers
             string delSql = "delete from tagconfig where tagId=1";
 
             ISqlExecute exe = new SqlServerExecute(connStr);
-            var result1 = exe.QueryMany<TagConfig>(sql);
+            //var result1 = exe.QueryMany<TagConfig>(sql);
             //var result2 = exe.QuerySingle<TagConfig>(sql);
 
             //var result3 = exe.ExecuteScalar<int>(sql);

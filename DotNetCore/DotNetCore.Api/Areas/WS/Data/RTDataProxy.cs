@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DotNetCore.Api.Areas.WS.Models;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,8 +9,39 @@ namespace DotNetCore.Api.Areas.WS.Data
 {
     public class TagSubObj
     {
-        public string TagName { get; set; }
+        public string ObectName { get; set; }
+
+        public string PropertyName { get; set; }
+
+        public string TagName
+        {
+            get
+            {
+                return TagData.GetTagName(this.ObectName,this.PropertyName);
+            }
+        }
     }
+
+    public class TagSubObjCompare : IEqualityComparer<TagSubObj>
+    {
+        public bool Equals(TagSubObj x, TagSubObj y)
+        {
+            if(x.ObectName==y.ObectName)
+            {
+                if(x.PropertyName==y.PropertyName)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        public int GetHashCode(TagSubObj obj)
+        {
+            return obj.ObectName.GetHashCode()+obj.PropertyName.GetHashCode();
+        }
+    }
+
 
     public interface IRTDataProxy<TData>:IDisposable
     {
@@ -35,6 +68,7 @@ namespace DotNetCore.Api.Areas.WS.Data
         public void InitClient()
         {
             this._dataSource.OnMessage += this.MessageHandler;
+            this._dataSource.OnException += this.ExceptionHandler;
             this._dataSource.Start();
         }
 
@@ -50,8 +84,8 @@ namespace DotNetCore.Api.Areas.WS.Data
         /// <param name="lstTag"></param>
         public void Subscribe(List<TagSubObj> lstTag)
         {
-            var lstTagName = lstTag.Select(x => x.TagName).ToList();
-            this._dataSource.Subscribe(lstTagName);
+            //var lstTagName = lstTag.Select(x => x.TagName).ToList();
+            this._dataSource.Subscribe(lstTag);
         }       
 
         /// <summary>
@@ -60,8 +94,8 @@ namespace DotNetCore.Api.Areas.WS.Data
         /// <param name="lstTag"></param>
         public void UnSubscribe(List<TagSubObj> lstTag)
         {
-            var lstTagName = lstTag.Select(x => x.TagName).ToList();
-            this._dataSource.UnSubscribe(lstTagName);
+            //var lstTagName = lstTag.Select(x => x.TagName).ToList();
+            this._dataSource.UnSubscribe(lstTag);
         }
 
         /// <summary>
@@ -71,7 +105,10 @@ namespace DotNetCore.Api.Areas.WS.Data
         /// <returns></returns>
         public DataUpdateEventArgs TranTagData(TagRawData rawData)
         {
-            throw new NotImplementedException();
+            var data = new DataUpdateEventArgs();
+            data.TagName = TagData.GetTagName(rawData.ObjectName, rawData.PropertyName);
+            data.TagData = new TagData { ObjectName=rawData.ObjectName, PropertyName=rawData.PropertyName, Status=rawData.Status, TimeStamp=rawData.Timestamp, Value=rawData.Value };
+            return data;
         }
 
         /// <summary>

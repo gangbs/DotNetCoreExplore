@@ -1,4 +1,5 @@
-﻿using DotNetCore.ViewModel.WebSocket;
+﻿using DotNetCore.Api.Areas.WS.Models;
+using DotNetCore.ViewModel.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,13 +9,15 @@ namespace DotNetCore.Api.Areas.WS.Data
 {
     public class DataUpdateEventArgs:EventArgs
     {
-        public DataUpdateEventArgs(string tagName, TagDataPush tagData)
-        {
-            TagName = tagName;
-            TagData = tagData;
-        }
-        public string TagName { get; private set; }
-        public TagDataPush TagData { get; private set; }
+        //public DataUpdateEventArgs(string tagName, TagData tagData)
+        //{
+        //    TagName = tagName;
+        //    TagData = tagData;
+        //}
+
+        public string TagName { get; set; }
+
+        public TagData TagData { get; set; }
     }
 
 
@@ -24,6 +27,6 @@ namespace DotNetCore.Api.Areas.WS.Data
         {
             this.Error = exception;
         }
-        public Exception Error { get; private set; }
+        public Exception Error { get; set; }
     }
 }

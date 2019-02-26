@@ -15,7 +15,7 @@ using DotNetCore.Api.Areas.WS.Data;
 
 namespace DotNetCore.Api.Areas.WS.Controllers
 {
-    [Route("ws/access")]
+    [Route("ws/access2")]
     [ApiController]
     public class WsAccessController : ControllerBase
     {
@@ -34,7 +34,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
             {
                 var socket = HttpContext.WebSockets.AcceptWebSocketAsync().Result;
 
-                
+
                 this.rTDataProxy.InitClient();
 
                 await WsHandler(socket);
@@ -98,16 +98,16 @@ namespace DotNetCore.Api.Areas.WS.Controllers
             }
 
             //推送实时数据()
-            while (socket.State== WebSocketState.Open)
+            while (socket.State == WebSocketState.Open)
             {//1.推送实时数据，2.
-                var resData = new DataPushResponse { resType=ResponseType.push.ToString(), content=new DataPushContent { subType= "device_prop", body=new Dictionary<string, IEnumerable<TagDataPush>>() } };
-                resData.content.body.Add("device - 1:prop1",new List<TagDataPush> { new TagDataPush { value= 0.85262805, status= TagDataStatus.normal, timestamp= 1524185355322 } });
-                resData.content.body.Add("device - 1:prop2", new List<TagDataPush> { new TagDataPush { value = 0.6905742, status = TagDataStatus.normal, timestamp = 1524185355322 } });
+                var resData = new DataPushResponse { resType = ResponseType.push.ToString(), content = new DataPushContent { subType = "device_prop", body = new Dictionary<string, IEnumerable<TagDataPush>>() } };
+                resData.content.body.Add("device - 1:prop1", new List<TagDataPush> { new TagDataPush { value = "0.85262805", status = TagDataStatus.normal, timestamp = 1524185355322 } });
+                resData.content.body.Add("device - 1:prop2", new List<TagDataPush> { new TagDataPush { value = "0.6905742", status = TagDataStatus.normal, timestamp = 1524185355322 } });
                 var sendBuffer = GetSendBuffer<DataPushResponse>(resData);
                 await socket.SendAsync(sendBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
-        
+
         public T GetReceiveObj<T>(byte[] buffer)
         {
             string str = buffer.Byte2String();
@@ -143,13 +143,13 @@ namespace DotNetCore.Api.Areas.WS.Controllers
         private void Subscribe(List<SubscribeDevice> lstSubObj)
         {
             var lstSubTag = new List<TagSubObj>();
-            foreach(var device in lstSubObj)
+            foreach (var device in lstSubObj)
             {
-                foreach(var pro in device.props)
+                foreach (var pro in device.props)
                 {
                     lstSubTag.Add(new TagSubObj
                     {
-                        TagName = device.deviceName + "-" + pro.name
+                        //TagName = device.deviceName + "-" + pro.name
                     });
                 }
             }

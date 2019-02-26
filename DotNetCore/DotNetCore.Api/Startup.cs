@@ -74,7 +74,7 @@ namespace DotNetCore.Api
             services.AddMvc(options =>
             {
                 options.Filters.Add(typeof(ApiExceptionFilterAttribute));
-                options.Filters.Add(typeof(ApiLogAttribute));//添加拦截器               
+                //options.Filters.Add(typeof(ApiLogAttribute));//添加拦截器               
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
             #endregion

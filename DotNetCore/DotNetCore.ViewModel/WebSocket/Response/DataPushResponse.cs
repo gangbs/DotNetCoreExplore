@@ -21,7 +21,7 @@ namespace DotNetCore.ViewModel.WebSocket
 
     public class TagDataPush
     {
-        public double value { get; set; }
+        public string value { get; set; }
         public long timestamp { get; set; }
 
         public TagDataStatus status { get; set; }
@@ -30,6 +30,7 @@ namespace DotNetCore.ViewModel.WebSocket
 
     public enum TagDataStatus
     {
-        normal=0
+        normal=0,
+        noValue=1
     }
 }

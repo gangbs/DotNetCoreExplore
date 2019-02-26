@@ -19,6 +19,6 @@ namespace DotNetCore.Infrastruct.Extensions
         public static List<T> ToList<T>(this string Json)
         {
             return Json == null ? null : JsonConvert.DeserializeObject<List<T>>(Json);
-        }
+        }       
     }
 }
