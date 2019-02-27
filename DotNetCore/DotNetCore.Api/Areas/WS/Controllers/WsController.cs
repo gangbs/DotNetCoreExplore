@@ -34,7 +34,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
 
         [HttpGet]
-        public async Task< HttpResponseMessage> Get()
+        public async Task<HttpResponseMessage> Get()
         {
             if (HttpContext.WebSockets.IsWebSocketRequest)
             {
@@ -44,10 +44,11 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
                 this._wsReceiver = new WsReceiver(this._webSocket);
                 this._rTDataProxy.InitClient();
-               await WsHandler();
+                await WsHandler();
             }
 
             //取消订阅
+
             return new HttpResponseMessage(HttpStatusCode.SwitchingProtocols);
         }
 
@@ -60,7 +61,20 @@ namespace DotNetCore.Api.Areas.WS.Controllers
             this._wsReceiver.OnHeartbeat += this.HearBeatHandler;
             this._wsReceiver.OnSubscribe += this.SubscribeHandler;
             this._wsReceiver.OnUnSubscribe += this.UnSubscribeHandler;
-           await this._wsReceiver.Listen();
+
+            await this._wsReceiver.Listen();
+
+
+            this._rTDataProxy.OnMessage -= this.OnDataUpdate;
+            this._wsReceiver.OnAuth -= this.AuthHandler;
+            this._wsReceiver.OnClose -= this.CloseHandler;
+            this._wsReceiver.OnError -= this.ErrorHandler;
+            this._wsReceiver.OnHeartbeat -= this.HearBeatHandler;
+            this._wsReceiver.OnSubscribe -= this.SubscribeHandler;
+            this._wsReceiver.OnUnSubscribe -= this.UnSubscribeHandler;
+            this._rTDataProxy.Dispose();
+            this._hearBeatMonitor?.Dispose();
+            this._dataPushTimer?.Dispose();
         }
 
         private void AuthHandler(object sender, WsRequest<AuthRequestContent> args)
@@ -78,7 +92,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
                 else
                 {//session不存在
                     string sessionId = HttpContext.Session.Id;
-                    var res = new WsResponse<AuthResponseContent> { resID = args.reqID, resType = ResponseType.subscribe.ToString(), content = new AuthResponseContent { auth="1", sessionId=sessionId } };
+                    var res = new WsResponse<AuthResponseContent> { resID = args.reqID, resType = ResponseType.request.ToString(), content = new AuthResponseContent { auth="1", sessionId=sessionId } };
                     this.SendMsg<WsResponse<AuthResponseContent>>(res);//返回session
                 }
                 //心跳检测，30秒检测一次
@@ -92,13 +106,21 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
         private void HearBeatHandler(object sender, EventArgs args)
         {
-            if (!this._isAuth) return;
+            if (!this._isAuth)
+            {
+                this._webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "authentication failed", CancellationToken.None);
+                return;
+            }
             this._lastHearBeat = DateTime.Now;
         }
 
         private void SubscribeHandler(object sender, WsRequest<SubscribeRequestContent> args)
         {
-            if (!this._isAuth) return;
+            if (!this._isAuth)
+            {
+                this._webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "authentication failed", CancellationToken.None);
+                return;
+            }
 
             //订阅数据
             this.Subscribe(args.content.body);
@@ -115,7 +137,11 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
         private void UnSubscribeHandler(object sender, WsRequest<SubscribeRequestContent> args)
         {
-            if (!this._isAuth) return;
+            if (!this._isAuth)
+            {
+                this._webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "authentication failed", CancellationToken.None);
+                return;
+            }
 
             //订阅数据
             this.UnSubscribe(args.content.body);
@@ -136,13 +162,12 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
         private void HearBeatCheck(object state)
         {
-            if (this._lastHearBeat == null) return;
+            if (this._lastHearBeat == default(DateTime)) return;
 
             DateTime dtNow = DateTime.Now;
             if (dtNow.Subtract(this._lastHearBeat).TotalSeconds > 60)
             {
                 this._webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "heart stop", CancellationToken.None);
-                this._hearBeatMonitor.Dispose();
             }
         }
 
@@ -153,7 +178,14 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
         private bool CheckSession(string sessionId)
         {
-            return true;
+            if(string.IsNullOrEmpty(sessionId))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }           
         }        
 
         private async void SendMsg<T>(T msg)
@@ -218,7 +250,10 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
         private void OnDataUpdate(object sender, DataUpdateEventArgs args)
         {
-            this._rTData[args.TagName] = args.TagData;
+            if(this._rTData.ContainsKey(args.TagName))
+            {
+                this._rTData[args.TagName] = args.TagData;
+            }          
         }
 
     }        

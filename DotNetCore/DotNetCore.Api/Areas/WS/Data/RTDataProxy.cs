@@ -140,6 +140,8 @@ namespace DotNetCore.Api.Areas.WS.Data
 
         public void Dispose()
         {
+            this._dataSource.OnMessage -= this.MessageHandler;
+            this._dataSource.OnException -= this.ExceptionHandler;
             this._dataSource.Dispose();
         }
     }

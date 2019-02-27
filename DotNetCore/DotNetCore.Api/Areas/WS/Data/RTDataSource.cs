@@ -74,7 +74,7 @@ namespace DotNetCore.Api.Areas.WS.Data
         /// <param name="lstTag"></param>
         public void UnSubscribe(List<TagSubObj> lstTag)
         {
-            this._lstTag.Except(lstTag);
+            this._lstTag = this._lstTag.Except(lstTag).ToList();
         }
 
         public void Dispose()

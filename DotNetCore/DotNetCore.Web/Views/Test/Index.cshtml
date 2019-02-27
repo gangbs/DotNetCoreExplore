@@ -14,14 +14,37 @@
 </head>
 <body>
 
+    <div>ws://localhost:51754/ws/access</div>
+    <br />
+
     <div>
-        <input id="user" type="text" />
-        <input id="conn" type="button" value="连接" />
-        <input id="close" type="button" value="关闭" /><br />
-        <span id="tips"></span>
-        <input id="content" type="text" />
-        <input id="send" type="button" value="发送" /><br />
-        <input id="to" type="text" />目的用户
+        <input id="conn_txt" type="text" />
+        <input id="conn_btn" type="button" value="连接" />
+        <input id="close_btn" type="button" value="关闭" /><br />
+
+        <br />
+        <input id="auth_txt" type="text" />
+        <input id="auth_btn" type="button" value="认证" /><br />
+
+        <br />
+        <input id="hear_txt" type="text" />
+        <input id="hear_btn" type="button" value="心跳包" />
+        <br />
+
+        <br />
+        <input id="sub_txt" type="text" />
+        <input id="sub_btn" type="button" value="订阅" />
+        <br />
+
+        <br />
+        <input id="unsub_txt" type="text" />
+        <input id="unsub_btn" type="button" value="取消订阅" />
+        <br />
+
+        <br />
+        <input id="clear_btn" type="button" value="清空" />
+        <br />
+
         <div id="msg"></div>
     </div>
 
@@ -32,20 +55,15 @@
 <script>
     var ws;
     $().ready(function () {
-        $('#conn').click(function () {
-            ws = new WebSocket('ws://localhost:51754/ws/access');
+        $('#conn_btn').click(function () {
+            ws = new WebSocket($('#conn_txt').val()); //'ws://localhost:51754/ws/access'
             $('#msg').append('<p>正在连接</p>');
 
             ws.onopen = function () {
                 $('#msg').append('<p>已经连接</p>');
-
-                var msgObj = { "reqID": "111", "reqType": "request", "content": { "token": "123456" } };
-                var str = JSON.stringify(msgObj);
-                ws.send(str);
             }
             ws.onmessage = function (evt) {
                 $('#msg').append('<p>' + evt.data + '</p>');
-                //$('#msg').text(evt.data);
             }
             ws.onerror = function (evt) {
                 $('#msg').append('<p>' + JSON.stringify(evt) + '</p>');
@@ -56,17 +74,48 @@
             }
         });
 
-        $('#close').click(function () {
+        $('#close_btn').click(function () {
             ws.close();
         });
 
-        $('#send').click(function () {
+        $('#auth_btn').click(function () {
             if (ws.readyState == WebSocket.OPEN) {
-                ws.send($('#content').val());
+                ws.send($('#auth_txt').val());
             }
             else {
-                $('#tips').text('连接已经关闭');
+                //$('#tips').text('连接已经关闭');
             }
+        });
+
+        $('#hear_btn').click(function () {
+            if (ws.readyState == WebSocket.OPEN) {
+                ws.send($('#hear_txt').val());
+            }
+            else {
+                //$('#tips').text('连接已经关闭');
+            }
+        });
+
+        $('#sub_btn').click(function () {
+            if (ws.readyState == WebSocket.OPEN) {
+                ws.send($('#sub_txt').val());
+            }
+            else {
+                //$('#tips').text('连接已经关闭');
+            }
+        });
+
+        $('#unsub_btn').click(function () {
+            if (ws.readyState == WebSocket.OPEN) {
+                ws.send($('#unsub_txt').val());
+            }
+            else {
+                //$('#tips').text('连接已经关闭');
+            }
+        });
+
+        $('#clear_btn').click(function () {
+            $('#msg').html("");
         });
 
     });

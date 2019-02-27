@@ -47,15 +47,19 @@ namespace DotNetCore.Api.Areas.WS.Data
             //关闭socket请求
             if (result.CloseStatus != null)
             {
-                if (this.OnClose != null) this.OnClose(this,null);
+                if (this.OnClose != null)
+                {
+                    this.OnClose(this, null);
+                    return;
+                }
             }
             
             var obj = GetReceiveObj<WsRequest<object>>(buffer);
+            var strContent = obj.content?.ToString();
 
             if (obj.reqType == RequestType.request.ToString() && this.OnAuth != null)
             {//认证请求
-                //var context = obj.content.ToObject<AuthRequestContent>();
-                var context = (AuthRequestContent)obj.content;
+                var context = strContent.ToObject<AuthRequestContent>();
                 var req = new WsRequest<AuthRequestContent> { reqID = obj.reqID, reqType = obj.reqType, content = context };
                 this.OnAuth(this, req);
             }
@@ -65,15 +69,13 @@ namespace DotNetCore.Api.Areas.WS.Data
             }
             else if (obj.reqType == RequestType.subscribe.ToString() && this.OnSubscribe != null)
             {//订阅请求
-                //var context = obj.content.ToObject<SubscribeRequestContent>();
-                var context = (SubscribeRequestContent)obj.content;
+                var context = strContent.ToObject<SubscribeRequestContent>();
                 var req = new WsRequest<SubscribeRequestContent> { reqID = obj.reqID, reqType = obj.reqType, content = context };
                 this.OnSubscribe(this, req);
             }
             else if (obj.reqType == RequestType.unsubscribe.ToString() && this.OnUnSubscribe != null)
             {//取消订阅请求
-                //var context = obj.content.ToObject<SubscribeRequestContent>();
-                var context = (SubscribeRequestContent)obj.content;
+                var context = strContent.ToObject<SubscribeRequestContent>();
                 var req = new WsRequest<SubscribeRequestContent> { reqID = obj.reqID, reqType = obj.reqType, content = context };
                 this.OnUnSubscribe(this, req);
             }
