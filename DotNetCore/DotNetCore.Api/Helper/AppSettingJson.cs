@@ -15,7 +15,6 @@ namespace DotNetCore.Api.Helper
             return configuration;
         }
 
-
         public static string GetValue(string key)
         {
             var config = GetConfig();
