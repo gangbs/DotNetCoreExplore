@@ -26,6 +26,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
         private Dictionary<string, TagData> _rTData = new Dictionary<string, TagData>();
         private RTDataProxy _rTDataProxy = new RTDataProxy();
         private bool _isAuth = false;
+        private string _sessionId;
 
         public WsController()
         {
@@ -54,7 +55,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
         public async Task WsHandler()
         {
-            this._rTDataProxy.OnMessage += this.OnDataUpdate;
+            this._rTDataProxy.OnMessage += this.DataUpdateHandler;
             this._wsReceiver.OnAuth += this.AuthHandler;
             this._wsReceiver.OnClose += this.CloseHandler;
             this._wsReceiver.OnError += this.ErrorHandler;
@@ -65,7 +66,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
             await this._wsReceiver.Listen();
 
 
-            this._rTDataProxy.OnMessage -= this.OnDataUpdate;
+            this._rTDataProxy.OnMessage -= this.DataUpdateHandler;
             this._wsReceiver.OnAuth -= this.AuthHandler;
             this._wsReceiver.OnClose -= this.CloseHandler;
             this._wsReceiver.OnError -= this.ErrorHandler;
@@ -84,6 +85,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
                 this._isAuth = true;
                 if (CheckSession(args.content.sessionId))
                 {//session存在
+                    this._sessionId = args.content.sessionId;
                     var res = new WsResponse<object> { resID=args.reqID, resType=ResponseType.subscribe.ToString(), content=new { result=1 } };
                     this.SendMsg<WsResponse<object>>(res);//订阅成功消息
                     //立即推送位号数据
@@ -91,11 +93,12 @@ namespace DotNetCore.Api.Areas.WS.Controllers
                 }
                 else
                 {//session不存在
-                    string sessionId = HttpContext.Session.Id;
-                    var res = new WsResponse<AuthResponseContent> { resID = args.reqID, resType = ResponseType.request.ToString(), content = new AuthResponseContent { auth="1", sessionId=sessionId } };
+                    this._sessionId = Guid.NewGuid().ToString();
+                    var res = new WsResponse<AuthResponseContent> { resID = args.reqID, resType = ResponseType.request.ToString(), content = new AuthResponseContent { auth="1", sessionId= this._sessionId } };
                     this.SendMsg<WsResponse<AuthResponseContent>>(res);//返回session
                 }
                 //心跳检测，30秒检测一次
+                this._lastHearBeat = DateTime.Now;
                 this._hearBeatMonitor = new Timer(this.HearBeatCheck, null, 2000, 30000);
             }
             else
@@ -162,7 +165,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
 
         private void HearBeatCheck(object state)
         {
-            if (this._lastHearBeat == default(DateTime)) return;
+            //if (this._lastHearBeat == default(DateTime)) return;
 
             DateTime dtNow = DateTime.Now;
             if (dtNow.Subtract(this._lastHearBeat).TotalSeconds > 60)
@@ -248,7 +251,7 @@ namespace DotNetCore.Api.Areas.WS.Controllers
             this._rTDataProxy.UnSubscribe(lstNeedUnSub);
         }
 
-        private void OnDataUpdate(object sender, DataUpdateEventArgs args)
+        private void DataUpdateHandler(object sender, DataUpdateEventArgs args)
         {
             if(this._rTData.ContainsKey(args.TagName))
             {
