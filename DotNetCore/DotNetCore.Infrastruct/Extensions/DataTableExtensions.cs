@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Reflection;
 using System.Text;
 
 namespace DotNetCore.Infrastruct.Extensions
 {
-   public static class DataTableExtensions
+    public static class DataTableExtensions
     {
         public static DataTable ListToTable<T>(this List<T> list)
         {
@@ -72,6 +73,31 @@ namespace DotNetCore.Infrastruct.Extensions
                 }
             }
             return entity;
+        }
+
+        public static void ToCsv(this DataTable table,string category)
+        {
+            //以半角逗号（即,）作分隔符，列为空也要表达其存在。
+            //列内容如存在半角逗号（即,）则用半角引号（即""）将该字段值包含起来。
+            //列内容如存在半角引号（即"）则应替换成半角双引号（""）转义，并用半角引号（即""）将该字段值包含起来。
+            StringBuilder sb = new StringBuilder();
+            DataColumn colum;
+            foreach (DataRow row in table.Rows)
+            {
+                for (int i = 0; i < table.Columns.Count; i++)
+                {
+                    colum = table.Columns[i];
+                    if (i != 0) sb.Append(",");
+                    if (colum.DataType == typeof(string) && row[colum].ToString().Contains(","))
+                    {
+                        sb.Append("\"" + row[colum].ToString().Replace("\"", "\"\"") + "\"");
+                    }
+                    else sb.Append(row[colum].ToString());
+                }
+                sb.AppendLine();
+            }
+            string path = category + table.TableName + ".csv";
+            File.WriteAllText(path, sb.ToString());
         }
     }
 }

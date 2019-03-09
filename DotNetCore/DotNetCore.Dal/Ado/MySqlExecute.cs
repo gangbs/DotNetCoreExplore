@@ -18,7 +18,7 @@ namespace DotNetCore.Dal.Ado
 
         public MySqlExecute(string strConn)
         {
-            this._connStr = strConn;
+            this._connStr = strConn;//MySql.Data.MySqlClient.MySqlBulkLoader
         }
 
         public SimpleResult ConnectTest(string strConn=null)

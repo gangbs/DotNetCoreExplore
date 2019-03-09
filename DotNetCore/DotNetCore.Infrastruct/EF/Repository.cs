@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Linq.Expressions;
@@ -53,27 +54,22 @@ namespace DotNetCore.Infrastruct.EF
         {
             return this._dbSet.Include<TEntity, TProperty>(propertySelectors);
         }
-        public IEnumerable<TEntity> GetAll()
+        public IQueryable<TEntity> GetAll()
         {
             return this._dbSet.AsNoTracking();
         }
-        public IEnumerable<TEntity> GetList(Expression<Func<TEntity, bool>> filter)
+        public IQueryable<TEntity> GetList(Expression<Func<TEntity, bool>> filter)
         {
             return this._dbSet.Where(filter).AsNoTracking();
         }
-        public IEnumerable<TEntity> GetList(string sql, params object[] parameters)
+        public IQueryable<TEntity> GetList(string sql, params object[] parameters)
         {
             return this._dbSet.FromSql(sql, parameters).AsNoTracking();
         }
-        public IEnumerable<TReturn> GetList<TReturn>(string sql, params object[] parameters)where TReturn:class
-        {
-           return this._context.Query<TReturn>().FromSql(sql,parameters).AsEnumerable();
-            //return this._context.Database.<TReturn>(sql, parameters);
-        }
-        public IEnumerable<TEntity> GetPaging<K>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, K>> orderFiled, int pageSize, int pageNum, out int count, bool isAsc = true)
+        public IQueryable<TEntity> GetPaging<TOrder>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TOrder>> orderFiled, int pageSize, int pageNum, out int count, bool isAsc = true)
         {
             count = _dbSet.Count(filter);
-            IEnumerable<TEntity> lstReturn;
+            IQueryable<TEntity> lstReturn;
 
             if (isAsc)
             {
@@ -84,6 +80,31 @@ namespace DotNetCore.Infrastruct.EF
                 lstReturn = _dbSet.Where(filter).OrderByDescending(orderFiled).Skip(pageSize * (pageNum - 1)).Take(pageSize).AsNoTracking();
             }
             return lstReturn;
+        }
+
+        public List<TReturn> GetList<TReturn>(string sql, params object[] parameters) where TReturn : new()
+        {
+            var cmd = this._context.Database.GetDbConnection().CreateCommand();
+            cmd.CommandText = sql;
+            if(parameters!=null)
+            {
+                cmd.Parameters.AddRange(parameters);
+            }           
+            cmd.CommandType = CommandType.Text;
+            var reader = cmd.ExecuteReader();
+
+            var lst = new List<TReturn>();
+            var pros = typeof(TReturn).GetProperties(System.Reflection.BindingFlags.Public);
+            while (reader.Read())
+            {
+                TReturn entity = new TReturn();
+                foreach (var p in pros)
+                {
+                    p.SetValue(entity, reader[p.Name]);
+                }
+                lst.Add(entity);
+            }
+            return lst;
         }
 
         #endregion
@@ -123,47 +144,13 @@ namespace DotNetCore.Infrastruct.EF
 
         public SaveResult Update(TPrimaryKey key, Action<TEntity> change, bool isSaveChange = true)
         {
-            throw new NotImplementedException();
+            var entity = _dbSet.Find(key);
+            if (entity == null) return new SaveResult { Success = false, Rows = 0, Message = "The entity is not exist!" };
+            change(entity);
+            return this.Update(entity, isSaveChange);
         }
 
-        public SaveResult UpdateProperty(Expression<Func<TEntity, bool>> filter, string filedName, object filedValue, bool isSaveChange = true)
-        {
-            var lstEntity = this._dbSet.Where(filter);
-            try
-            {
-                foreach (var entity in lstEntity)
-                {
-                    typeof(TEntity).GetProperty(filedName).SetValue(entity, filedValue);
-                }
-            }
-            catch
-            {
-                return null;
-            }
-            return isSaveChange ? this.Save() : null;
-        }
-
-        public SaveResult UpdatePropertys(Expression<Func<TEntity, bool>> filter, Dictionary<string, object> fileds, bool isSaveChange = true)
-        {
-            var lstEntity = this._dbSet.Where(filter);
-            try
-            {
-                foreach (var entity in lstEntity)
-                {
-                    foreach (KeyValuePair<string, object> kv in fileds)
-                    {
-                        typeof(TEntity).GetProperty(kv.Key).SetValue(entity, kv.Value);
-                    }
-                }
-            }
-            catch
-            {
-                return null;
-            }
-            return isSaveChange ? this.Save() : null;
-        }
-
-        public SaveResult UpdatePropertys(Expression<Func<TEntity, bool>> filter, Action<TEntity> change, bool isSaveChange = true)
+        public SaveResult UpdateProperty(Expression<Func<TEntity, bool>> filter, Action<TEntity> change, bool isSaveChange = true)
         {
             var lstEntity = this._dbSet.Where(filter);
             foreach (var entity in lstEntity)
@@ -177,19 +164,18 @@ namespace DotNetCore.Infrastruct.EF
 
         #region 删除
 
-        public SaveResult Delete(TPrimaryKey key,bool isSaveChange = true)
-        {
-            TEntity entity = this._dbSet.Find(key);
-            return this.Delete(entity, isSaveChange);
-        }
-
         public SaveResult Delete(TEntity entity, bool isSaveChange = true)
         {
-            //_dbSet.Remove(entity);
             _dbSet.Attach(entity);
             _context.Entry(entity).State = EntityState.Deleted;
             return isSaveChange ? this.Save() : null;
         }
+
+        public SaveResult Delete(TPrimaryKey key,bool isSaveChange = true)
+        {
+            TEntity entity = this._dbSet.Find(key);
+            return this.Delete(entity, isSaveChange);
+        }        
 
         public SaveResult Delete(Expression<Func<TEntity, bool>> filter, bool isSaveChange = true)
         {

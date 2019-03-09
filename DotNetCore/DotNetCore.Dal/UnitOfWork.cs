@@ -14,16 +14,15 @@ namespace DotNetCore.Dal
         {
         }
 
-
-        public override IRepository<TEntity, int> GetRepository<TEntity>()
+        public override TRepository GetRepository<TRepository, TEntity>()
         {
             string typeName = typeof(TEntity).Name;
             object repository;
-            if(!this._dicRepository.TryGetValue(typeName,out repository))
+            if (!this._dicRepository.TryGetValue(typeName, out repository))
             {
                 this._dicRepository[typeName] = new Repository<TEntity>(this._dbContext);
             }
-            return (Repository<TEntity>)this._dicRepository[typeName];
+            return (TRepository)this._dicRepository[typeName];
         }
     }
 }

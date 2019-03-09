@@ -14,7 +14,10 @@ namespace DotNetCore.Infrastruct.EF
             this._dbContext = dbContext;
         }
 
-        public abstract IRepository<TEntity, TPrimaryKey> GetRepository<TEntity>() where TEntity : class, IEntity<TPrimaryKey>;
+        public abstract TRepository GetRepository<TRepository, TEntity>() 
+            where TRepository : class, IRepository<TEntity, TPrimaryKey> 
+            where TEntity:class, IEntity<TPrimaryKey>;
+
 
         public SaveResult SaveChanges()
         {

@@ -13,22 +13,16 @@ namespace DotNetCore.Infrastruct.EF
         #region 查询
 
         TEntity Get(TPrimaryKey key);
-
         TEntity Get(Expression<Func<TEntity, bool>> fliter);
-
         bool TryGet(Expression<Func<TEntity, bool>> fliter, out TEntity entity);
-
         IQueryable<TEntity> GetAllIncluding<TProperty>(Expression<Func<TEntity, TProperty>> propertySelectors);
+        IQueryable<TEntity> GetAll();
+        IQueryable<TEntity> GetList(Expression<Func<TEntity, bool>> filter);
+        IQueryable<TEntity> GetList(string sql, params object[] parameters);
+        IQueryable<TEntity> GetPaging<TOrder>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, TOrder>> orderFiled, int pageSize, int pageNum, out int count, bool isAsc = true);
 
-        IEnumerable<TEntity> GetAll();
-
-        IEnumerable<TEntity> GetList(Expression<Func<TEntity, bool>> filter);
-
-        IEnumerable<TEntity> GetList(string sql, params object[] parameters);
-
-        IEnumerable<TReturn> GetList<TReturn>(string sql, params object[] parameters) where TReturn : class;
-
-        IEnumerable<TEntity> GetPaging<K>(Expression<Func<TEntity, bool>> filter, Expression<Func<TEntity, K>> orderFiled, int pageSize, int pageNum, out int count, bool isAsc = true);
+        List<TReturn> GetList<TReturn>(string sql, params object[] parameters)
+            where TReturn:new();
 
         #endregion
 
@@ -46,11 +40,7 @@ namespace DotNetCore.Infrastruct.EF
 
         SaveResult Update(TPrimaryKey key, Action<TEntity> change, bool isSaveChange = true);
 
-        SaveResult UpdateProperty(Expression<Func<TEntity, bool>> filter, string filedName, object filedValue, bool isSaveChange = true);
-
-        SaveResult UpdatePropertys(Expression<Func<TEntity, bool>> filter, Dictionary<string, object> fileds, bool isSaveChange = true);
-
-        SaveResult UpdatePropertys(Expression<Func<TEntity, bool>> filter, Action<TEntity> change, bool isSaveChange = true);
+        SaveResult UpdateProperty(Expression<Func<TEntity, bool>> filter, Action<TEntity> change, bool isSaveChange = true);
 
         #endregion
 
