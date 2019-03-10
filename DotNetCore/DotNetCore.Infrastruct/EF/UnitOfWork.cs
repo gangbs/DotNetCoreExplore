@@ -25,11 +25,18 @@ namespace DotNetCore.Infrastruct.EF
             try
             {
                 int count = _dbContext.SaveChanges();
-                r = new SaveResult { Success = true, Rows = count };
+                if (count >= 1)
+                {
+                    r = new SaveResult { Status = SaveStatus.Success, Rows = count };
+                }
+                else
+                {
+                    r = new SaveResult { Status = SaveStatus.NoImpact, Rows = count };
+                }
             }
             catch (Exception exp)
             {
-                r = new SaveResult { Success = false, Message = exp.Message };
+                r = new SaveResult { Status= SaveStatus.Error, Message = exp.Message };
             }
             return r;
         }

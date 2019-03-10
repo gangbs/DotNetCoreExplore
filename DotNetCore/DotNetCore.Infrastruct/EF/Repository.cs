@@ -120,13 +120,13 @@ namespace DotNetCore.Infrastruct.EF
             //第二种方法
             _dbSet.Add(entity); //EntityState.Detached
 
-            return isSaveChange ? this.Save() : null;
+            return isSaveChange ? this.Save() : new SaveResult();
         }
         public SaveResult InsertMany(IEnumerable<TEntity> lst, bool isSaveChange = true)
         {
             _dbSet.AddRange(lst);
 
-            return isSaveChange ? this.Save() : null;
+            return isSaveChange ? this.Save() : new SaveResult();
         }
         
 
@@ -139,13 +139,13 @@ namespace DotNetCore.Infrastruct.EF
             _dbSet.Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
 
-            return isSaveChange ? this.Save() : null;
+            return isSaveChange ? this.Save() : new SaveResult();
         }
 
         public SaveResult Update(TPrimaryKey key, Action<TEntity> change, bool isSaveChange = true)
         {
             var entity = _dbSet.Find(key);
-            if (entity == null) return new SaveResult { Success = false, Rows = 0, Message = "The entity is not exist!" };
+            if (entity == null) return new SaveResult { Status= SaveStatus.NonExist, Rows = 0, Message = "The entity is not exist!" };
             change(entity);
             return this.Update(entity, isSaveChange);
         }
@@ -153,11 +153,14 @@ namespace DotNetCore.Infrastruct.EF
         public SaveResult UpdateProperty(Expression<Func<TEntity, bool>> filter, Action<TEntity> change, bool isSaveChange = true)
         {
             var lstEntity = this._dbSet.Where(filter);
+            if (lstEntity == null||lstEntity.Count()<1)
+                return new SaveResult { Status = SaveStatus.NonExist, Rows = 0, Message = "The entity is not exist!" };
+
             foreach (var entity in lstEntity)
             {
                 change(entity);
             }
-            return isSaveChange ? this.Save() : null;
+            return isSaveChange ? this.Save() : new SaveResult();
         }
 
         #endregion
@@ -168,20 +171,23 @@ namespace DotNetCore.Infrastruct.EF
         {
             _dbSet.Attach(entity);
             _context.Entry(entity).State = EntityState.Deleted;
-            return isSaveChange ? this.Save() : null;
+            return isSaveChange ? this.Save() : new SaveResult();
         }
 
         public SaveResult Delete(TPrimaryKey key,bool isSaveChange = true)
         {
             TEntity entity = this._dbSet.Find(key);
+            if (entity == null) return new SaveResult { Status = SaveStatus.NonExist, Rows = 0, Message = "The entity is not exist!" };
             return this.Delete(entity, isSaveChange);
         }        
 
         public SaveResult Delete(Expression<Func<TEntity, bool>> filter, bool isSaveChange = true)
         {
             var lst = this._dbSet.Where(filter);
+            if (lst == null || lst.Count() < 1)
+                return new SaveResult { Status = SaveStatus.NonExist, Rows = 0, Message = "The entity is not exist!" };
             _dbSet.RemoveRange(lst);
-            return isSaveChange ? this.Save() : null;
+            return isSaveChange ? this.Save() : new SaveResult();
         }
 
         #endregion
@@ -194,11 +200,18 @@ namespace DotNetCore.Infrastruct.EF
             try
             {
                 int count = _context.SaveChanges();
-                r = new SaveResult { Success = true, Rows = count };
+                if (count >= 1)
+                {
+                    r = new SaveResult { Status = SaveStatus.Success, Rows = count };
+                }
+                else
+                {
+                    r = new SaveResult { Status = SaveStatus.NoImpact, Rows = count };
+                }
             }
             catch (Exception exp)
             {
-                r = new SaveResult { Success = false, Message = exp.Message };
+                r = new SaveResult {  Status= SaveStatus.Error, Message = exp.Message };
             }
             return r;
         }
@@ -213,11 +226,19 @@ namespace DotNetCore.Infrastruct.EF
             try
             {
                 int count = this._context.Database.ExecuteSqlCommand(sql, parameters);
-                r = new SaveResult { Success = true, Rows = count };
+
+                if (count >= 1)
+                {
+                    r = new SaveResult { Status = SaveStatus.Success, Rows = count };
+                }
+                else
+                {
+                    r = new SaveResult { Status = SaveStatus.NoImpact, Rows = count };
+                }
             }
             catch (Exception exp)
             {
-                r = new SaveResult { Success = false, Message = exp.Message };
+                r = new SaveResult { Status = SaveStatus.Error, Message = exp.Message };
             }
             return r;
         }

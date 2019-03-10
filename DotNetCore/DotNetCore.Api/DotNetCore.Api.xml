@@ -11,5 +11,50 @@
             <param name="id">用户id</param>
             <returns></returns>
         </member>
+        <member name="M:DotNetCore.Api.Areas.WS.Data.RTDataProxy.Subscribe(System.Collections.Generic.List{DotNetCore.Api.Areas.WS.Data.TagSubObj})">
+            <summary>
+            订阅位号数据
+            </summary>
+            <param name="lstTag"></param>
+        </member>
+        <member name="M:DotNetCore.Api.Areas.WS.Data.RTDataProxy.UnSubscribe(System.Collections.Generic.List{DotNetCore.Api.Areas.WS.Data.TagSubObj})">
+            <summary>
+            取消订阅位号数据
+            </summary>
+            <param name="lstTag"></param>
+        </member>
+        <member name="M:DotNetCore.Api.Areas.WS.Data.RTDataProxy.TranTagData(DotNetCore.Api.Areas.WS.Data.TagRawData)">
+            <summary>
+            将订阅上来的数据转换为模块所需的格式
+            </summary>
+            <param name="rawData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:DotNetCore.Api.Areas.WS.Data.RTDataProxy.MessageHandler(System.Object,DotNetCore.Api.Areas.WS.Data.TagRawData)">
+            <summary>
+            接收订阅数据
+            </summary>
+            <param name="sender"></param>
+            <param name="rawData"></param>
+        </member>
+        <member name="M:DotNetCore.Api.Areas.WS.Data.RTDataProxy.ExceptionHandler(System.Object,System.EventArgs)">
+            <summary>
+            接收异常信息
+            </summary>
+            <param name="sender"></param>
+            <param name="args"></param>
+        </member>
+        <member name="M:DotNetCore.Api.Areas.WS.Data.RTDataSource.Subscribe(System.Collections.Generic.List{DotNetCore.Api.Areas.WS.Data.TagSubObj})">
+            <summary>
+            订阅位号数据
+            </summary>
+            <param name="lstTag"></param>
+        </member>
+        <member name="M:DotNetCore.Api.Areas.WS.Data.RTDataSource.UnSubscribe(System.Collections.Generic.List{DotNetCore.Api.Areas.WS.Data.TagSubObj})">
+            <summary>
+            取消订阅位号数据
+            </summary>
+            <param name="lstTag"></param>
+        </member>
     </members>
 </doc>
